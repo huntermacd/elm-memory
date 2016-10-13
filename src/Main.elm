@@ -19,7 +19,8 @@ type alias Model =
 
 
 type alias Card =
-    { value : String
+    { id : Int
+    , value : String
     , faceDown : Bool
     }
 
@@ -27,42 +28,42 @@ type alias Card =
 init : Flags -> ( Model, Cmd Msg )
 init { randSeed } =
     ( { deck =
-            [ { value = "A", faceDown = True }
-            , { value = "A", faceDown = True }
-            , { value = "B", faceDown = True }
-            , { value = "B", faceDown = True }
-            , { value = "C", faceDown = True }
-            , { value = "C", faceDown = True }
-            , { value = "D", faceDown = True }
-            , { value = "D", faceDown = True }
-            , { value = "E", faceDown = True }
-            , { value = "E", faceDown = True }
-            , { value = "F", faceDown = True }
-            , { value = "F", faceDown = True }
-            , { value = "G", faceDown = True }
-            , { value = "G", faceDown = True }
-            , { value = "H", faceDown = True }
-            , { value = "H", faceDown = True }
-            , { value = "I", faceDown = True }
-            , { value = "I", faceDown = True }
-            , { value = "J", faceDown = True }
-            , { value = "J", faceDown = True }
-            , { value = "K", faceDown = True }
-            , { value = "K", faceDown = True }
-            , { value = "L", faceDown = True }
-            , { value = "L", faceDown = True }
-            , { value = "M", faceDown = True }
-            , { value = "M", faceDown = True }
-            , { value = "N", faceDown = True }
-            , { value = "N", faceDown = True }
-            , { value = "O", faceDown = True }
-            , { value = "O", faceDown = True }
-            , { value = "P", faceDown = True }
-            , { value = "P", faceDown = True }
-            , { value = "Q", faceDown = True }
-            , { value = "Q", faceDown = True }
-            , { value = "R", faceDown = True }
-            , { value = "R", faceDown = True }
+            [ { id = 1, value = "A", faceDown = True }
+            , { id = 2, value = "A", faceDown = True }
+            , { id = 3, value = "B", faceDown = True }
+            , { id = 4, value = "B", faceDown = True }
+            , { id = 5, value = "C", faceDown = True }
+            , { id = 6, value = "C", faceDown = True }
+            , { id = 7, value = "D", faceDown = True }
+            , { id = 8, value = "D", faceDown = True }
+            , { id = 9, value = "E", faceDown = True }
+            , { id = 10, value = "E", faceDown = True }
+            , { id = 11, value = "F", faceDown = True }
+            , { id = 12, value = "F", faceDown = True }
+            , { id = 13, value = "G", faceDown = True }
+            , { id = 14, value = "G", faceDown = True }
+            , { id = 15, value = "H", faceDown = True }
+            , { id = 16, value = "H", faceDown = True }
+            , { id = 17, value = "I", faceDown = True }
+            , { id = 18, value = "I", faceDown = True }
+            , { id = 19, value = "J", faceDown = True }
+            , { id = 20, value = "J", faceDown = True }
+            , { id = 21, value = "K", faceDown = True }
+            , { id = 22, value = "K", faceDown = True }
+            , { id = 23, value = "L", faceDown = True }
+            , { id = 24, value = "L", faceDown = True }
+            , { id = 25, value = "M", faceDown = True }
+            , { id = 26, value = "M", faceDown = True }
+            , { id = 27, value = "N", faceDown = True }
+            , { id = 28, value = "N", faceDown = True }
+            , { id = 29, value = "O", faceDown = True }
+            , { id = 30, value = "O", faceDown = True }
+            , { id = 31, value = "P", faceDown = True }
+            , { id = 32, value = "P", faceDown = True }
+            , { id = 33, value = "Q", faceDown = True }
+            , { id = 34, value = "Q", faceDown = True }
+            , { id = 35, value = "R", faceDown = True }
+            , { id = 36, value = "R", faceDown = True }
             ]
       , seed = Random.initialSeed randSeed
       }
@@ -73,6 +74,7 @@ init { randSeed } =
 type Msg
     = NoOp
     | NewGame
+    | FlipCard Int
 
 
 view : Model -> Html Msg
@@ -89,8 +91,8 @@ view model =
 
 viewCard : Card -> Html Msg
 viewCard card =
-    div [ class "card" ]
-        [ div [ class "card-value" ] [ text <| card.value ]
+    div [ onClick <| FlipCard card.id, classList [ ( "card", True ), ( "face-down", card.faceDown ) ] ]
+        [ span [ class "card-value" ] [ text <| card.value ]
         ]
 
 
@@ -106,6 +108,16 @@ update msg model =
                     Random.step (Random.list (List.length model.deck) (Random.int 1 100)) model.seed |> fst
             in
                 ( { model | deck = (List.map2 (,) randomNums model.deck |> List.sortBy fst |> List.unzip |> snd) }, Cmd.none )
+
+        FlipCard id ->
+            let
+                flipCard e =
+                    if e.id == id then
+                        { e | faceDown = not e.faceDown }
+                    else
+                        e
+            in
+                ( { model | deck = List.map flipCard model.deck }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
