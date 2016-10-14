@@ -14,6 +14,7 @@ type alias Flags =
 
 type alias Model =
     { deck : List Card
+    , flippedCards : List Card
     , seed : Random.Seed
     }
 
@@ -65,6 +66,7 @@ init { randSeed } =
             , { id = 35, value = "R", faceDown = True }
             , { id = 36, value = "R", faceDown = True }
             ]
+      , flippedCards = []
       , seed = Random.initialSeed randSeed
       }
     , Cmd.none
@@ -74,6 +76,7 @@ init { randSeed } =
 type Msg
     = NoOp
     | NewGame
+    | Shuffle
     | FlipCard Int
 
 
@@ -86,6 +89,7 @@ view model =
             <|
                 model.deck
         , button [ onClick NewGame ] [ text "New Game" ]
+        , button [ onClick Shuffle ] [ text "Shuffle" ]
         ]
 
 
@@ -103,6 +107,9 @@ update msg model =
             ( model, Cmd.none )
 
         NewGame ->
+            ( { model | deck = List.map (\card -> { card | faceDown = True }) model.deck }, Cmd.none )
+
+        Shuffle ->
             let
                 randomNums =
                     Random.step (Random.list (List.length model.deck) (Random.int 1 100)) model.seed |> fst
