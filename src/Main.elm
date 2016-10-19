@@ -5,6 +5,7 @@ import Html.App
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import List
+import List.Extra exposing (..)
 import Random
 
 
@@ -76,7 +77,7 @@ init { randSeed } =
 type Msg
     = NoOp
     | NewGame
-    | FlipSingleCard Int
+    | FlipSingleCard Card
 
 
 view : Model -> Html Msg
@@ -88,13 +89,25 @@ view model =
             <|
                 model.deck
         , button [ onClick NewGame ] [ text "New Game" ]
+        , p [] [ text <| toString <| List.Extra.getAt 0 model.flippedCards ]
+        , p [] [ text <| toString <| List.Extra.getAt 1 model.flippedCards ]
         ]
 
 
 viewCard : Card -> Html Msg
 viewCard card =
-    div [ onClick <| FlipSingleCard card.id, classList [ ( "card", True ), ( "face-down", card.faceDown ) ] ]
-        [ span [ class "card-value" ] [ text <| card.value ]
+    div
+        [ onClick <|
+            (if card.faceDown then
+                FlipSingleCard
+             else
+                always NoOp
+            )
+            <|
+                card
+        , classList [ ( "card", True ), ( "face-down", card.faceDown ) ]
+        ]
+        [ Html.span [ class "card-value" ] [ text <| card.value ]
         ]
 
 
@@ -113,15 +126,34 @@ update msg model =
             in
                 ( newModel, Cmd.none )
 
-        FlipSingleCard id ->
+        FlipSingleCard card ->
             let
                 flipCard e =
-                    if e.id == id then
+                    if e.id == card.id then
                         { e | faceDown = not e.faceDown }
                     else
                         e
             in
-                ( { model | deck = List.map flipCard model.deck }, Cmd.none )
+                ( { model | deck = List.map flipCard model.deck, flippedCards = card :: model.flippedCards }, Cmd.none )
+
+
+
+{- when user clicks on a card:
+   1. flip card
+   2. add to flippedCards list
+   3. check length of list
+       • if list has 1 value, do nothing
+       • if list has 2 values, continue
+   4. compare value of both cards in list
+       • if cards are equal, set unclickable to true
+       • if cards are not equal, set faceDown = True for both
+   5. clear flippedCards
+-}
+
+
+compareCards : Card -> Card -> Bool
+compareCards card1 card2 =
+    card1.value == card2.value
 
 
 flipAllCardsFaceDown : Model -> Model
