@@ -16,7 +16,7 @@
 
 .card-value {
   font-size: 3em;
-  position: fixed;
+  position: absolute;
   color: white;
   font-weight: bold;
 }
