@@ -86,7 +86,8 @@ type Msg
     = NoOp
     | NewGame
     | FlipSingleCard Card
-    | FlipAllCards
+    | RestoreComparing
+    | RestoreComparingAndFlipped
 
 
 view : Model -> Html Msg
@@ -134,8 +135,7 @@ update msg model =
                 newModel =
                     model
                         |> flipAllCardsFaceDown
-
-                -- |> shuffle
+                        |> shuffle
             in
                 ( newModel, Cmd.none )
 
@@ -153,7 +153,6 @@ update msg model =
                 updatedCardsToCompare =
                     (,) card (fst model.cardsToCompare)
 
-                -- function that returns number of cards where comparing is True
                 numberComparing =
                     let
                         i =
@@ -170,80 +169,61 @@ update msg model =
                                     )
                                     updatedDeck
 
-                -- if there are exactly 2 cards where comparing is True, return True
-                shouldCompare =
-                    if numberComparing == 2 then
-                        True
-                    else
-                        False
-
-                -- if shouldCompare is True, compare value of both cards in updatedCardsToCompare
                 areEqual =
-                    if shouldCompare then
+                    if numberComparing == 2 then
                         (==) (.value <| fst updatedCardsToCompare) (.value <| snd updatedCardsToCompare)
                     else
                         False
-
-                shouldRestore =
-                    shouldCompare && not areEqual
-
-                db1 =
-                    Debug.log "updatedCardsToCompare" updatedCardsToCompare
-
-                db2 =
-                    Debug.log "numberComparing" numberComparing
-
-                db3 =
-                    Debug.log "shouldCompare" shouldCompare
-
-                db4 =
-                    Debug.log "areEqual" areEqual
-
-                db5 =
-                    Debug.log "shouldRestore" shouldRestore
-
-                {-
-                   If I click to "A" value cards in a row
-
-                   updatedCardsToCompare = ("A", blank-card)
-                   numberComparing = 1
-                   shouldCompare = False
-                   areEqual = False
-
-                   updatedCardsToCompare = ("A", "A")
-                   numberComparing = 2
-                   shouldCompare = True
-                   areEqual = True
-                -}
             in
-                -- if compared cards are equal, do nothing, else sleep 1 second, then flip all cards
-                -- where comparing is True facedown
                 ( { model
                     | deck = updatedDeck
                     , cardsToCompare =
-                        (if not shouldCompare then
+                        (if numberComparing /= 2 then
                             updatedCardsToCompare
                          else
                             ( blankCard, blankCard )
                         )
                   }
-                , if shouldRestore then
-                    restoreCards
+                , if numberComparing == 2 then
+                    if areEqual == True then
+                        restoreComparing
+                    else
+                        restoreComparingAndFlipped
                   else
                     Cmd.none
                 )
 
-        FlipAllCards ->
+        RestoreComparing ->
+            ( { model | deck = List.map (\card -> { card | comparing = False }) model.deck }, Cmd.none )
+
+        RestoreComparingAndFlipped ->
             let
-                newModel =
-                    model |> flipAllCardsFaceDown
+                updatedDeck =
+                    List.map
+                        (\card ->
+                            if card.comparing == True then
+                                { card | faceDown = True }
+                            else
+                                card
+                        )
+                        model.deck
             in
-                ( newModel, Cmd.none )
+                ( { model | deck = List.map (\card -> { card | comparing = False }) updatedDeck }, Cmd.none )
 
 
-restoreCards : Cmd Msg
-restoreCards =
-    sleep 1000 |> Task.perform never (\_ -> FlipAllCards)
+
+-- TODO: adjust so all logic WRT restoration happens instantly, and only the -visual- flipping is delayed by a second
+-- might require re-working what determines the visual appearance of a card
+
+
+restoreComparing : Cmd Msg
+restoreComparing =
+    sleep 1000 |> Task.perform never (\_ -> RestoreComparing)
+
+
+restoreComparingAndFlipped : Cmd Msg
+restoreComparingAndFlipped =
+    sleep 1000 |> Task.perform never (\_ -> RestoreComparingAndFlipped)
 
 
 newGame : Cmd Msg
