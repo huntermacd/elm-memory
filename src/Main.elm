@@ -1,6 +1,7 @@
 module Main exposing (..)
 
 import Basics.Extra exposing (never)
+import Debug
 import Html exposing (..)
 import Html.App
 import Html.Attributes exposing (..)
@@ -16,7 +17,7 @@ type alias Flags =
 
 type alias Model =
     { deck : List Card
-    , flippedCards : ( Card, Card )
+    , cardsToCompare : ( Card, Card )
     , seed : Random.Seed
     }
 
@@ -25,55 +26,56 @@ type alias Card =
     { id : Int
     , value : String
     , faceDown : Bool
+    , comparing : Bool
     }
 
 
 blankCard : Card
 blankCard =
-    { id = 0, value = "?", faceDown = True }
+    { id = 0, value = "", faceDown = True, comparing = False }
 
 
 init : Flags -> ( Model, Cmd Msg )
 init { randSeed } =
     ( { deck =
-            [ { id = 1, value = "A", faceDown = True }
-            , { id = 2, value = "A", faceDown = True }
-            , { id = 3, value = "B", faceDown = True }
-            , { id = 4, value = "B", faceDown = True }
-            , { id = 5, value = "C", faceDown = True }
-            , { id = 6, value = "C", faceDown = True }
-            , { id = 7, value = "D", faceDown = True }
-            , { id = 8, value = "D", faceDown = True }
-            , { id = 9, value = "E", faceDown = True }
-            , { id = 10, value = "E", faceDown = True }
-            , { id = 11, value = "F", faceDown = True }
-            , { id = 12, value = "F", faceDown = True }
-            , { id = 13, value = "G", faceDown = True }
-            , { id = 14, value = "G", faceDown = True }
-            , { id = 15, value = "H", faceDown = True }
-            , { id = 16, value = "H", faceDown = True }
-            , { id = 17, value = "I", faceDown = True }
-            , { id = 18, value = "I", faceDown = True }
-            , { id = 19, value = "J", faceDown = True }
-            , { id = 20, value = "J", faceDown = True }
-            , { id = 21, value = "K", faceDown = True }
-            , { id = 22, value = "K", faceDown = True }
-            , { id = 23, value = "L", faceDown = True }
-            , { id = 24, value = "L", faceDown = True }
-            , { id = 25, value = "M", faceDown = True }
-            , { id = 26, value = "M", faceDown = True }
-            , { id = 27, value = "N", faceDown = True }
-            , { id = 28, value = "N", faceDown = True }
-            , { id = 29, value = "O", faceDown = True }
-            , { id = 30, value = "O", faceDown = True }
-            , { id = 31, value = "P", faceDown = True }
-            , { id = 32, value = "P", faceDown = True }
-            , { id = 33, value = "Q", faceDown = True }
-            , { id = 34, value = "Q", faceDown = True }
-            , { id = 35, value = "R", faceDown = True }
-            , { id = 36, value = "R", faceDown = True }
+            [ { id = 1, value = "A", faceDown = True, comparing = False }
+            , { id = 2, value = "A", faceDown = True, comparing = False }
+            , { id = 3, value = "B", faceDown = True, comparing = False }
+            , { id = 4, value = "B", faceDown = True, comparing = False }
+            , { id = 5, value = "C", faceDown = True, comparing = False }
+            , { id = 6, value = "C", faceDown = True, comparing = False }
+            , { id = 7, value = "D", faceDown = True, comparing = False }
+            , { id = 8, value = "D", faceDown = True, comparing = False }
+            , { id = 9, value = "E", faceDown = True, comparing = False }
+            , { id = 10, value = "E", faceDown = True, comparing = False }
+            , { id = 11, value = "F", faceDown = True, comparing = False }
+            , { id = 12, value = "F", faceDown = True, comparing = False }
+            , { id = 13, value = "G", faceDown = True, comparing = False }
+            , { id = 14, value = "G", faceDown = True, comparing = False }
+            , { id = 15, value = "H", faceDown = True, comparing = False }
+            , { id = 16, value = "H", faceDown = True, comparing = False }
+            , { id = 17, value = "I", faceDown = True, comparing = False }
+            , { id = 18, value = "I", faceDown = True, comparing = False }
+            , { id = 19, value = "J", faceDown = True, comparing = False }
+            , { id = 20, value = "J", faceDown = True, comparing = False }
+            , { id = 21, value = "K", faceDown = True, comparing = False }
+            , { id = 22, value = "K", faceDown = True, comparing = False }
+            , { id = 23, value = "L", faceDown = True, comparing = False }
+            , { id = 24, value = "L", faceDown = True, comparing = False }
+            , { id = 25, value = "M", faceDown = True, comparing = False }
+            , { id = 26, value = "M", faceDown = True, comparing = False }
+            , { id = 27, value = "N", faceDown = True, comparing = False }
+            , { id = 28, value = "N", faceDown = True, comparing = False }
+            , { id = 29, value = "O", faceDown = True, comparing = False }
+            , { id = 30, value = "O", faceDown = True, comparing = False }
+            , { id = 31, value = "P", faceDown = True, comparing = False }
+            , { id = 32, value = "P", faceDown = True, comparing = False }
+            , { id = 33, value = "Q", faceDown = True, comparing = False }
+            , { id = 34, value = "Q", faceDown = True, comparing = False }
+            , { id = 35, value = "R", faceDown = True, comparing = False }
+            , { id = 36, value = "R", faceDown = True, comparing = False }
             ]
-      , flippedCards = ( blankCard, blankCard )
+      , cardsToCompare = ( blankCard, blankCard )
       , seed = Random.initialSeed randSeed
       }
     , newGame
@@ -84,6 +86,7 @@ type Msg
     = NoOp
     | NewGame
     | FlipSingleCard Card
+    | FlipAllCards
 
 
 view : Model -> Html Msg
@@ -95,9 +98,6 @@ view model =
             <|
                 model.deck
         , button [ onClick NewGame ] [ text "New Game" ]
-        , p [] [ text <| toString <| fst model.flippedCards ]
-        , p [] [ text <| toString <| snd model.flippedCards ]
-        , hr [] []
         , ul [] <| List.map listCard model.deck
         ]
 
@@ -134,122 +134,121 @@ update msg model =
                 newModel =
                     model
                         |> flipAllCardsFaceDown
-                        |> shuffle
+
+                -- |> shuffle
             in
-                ( { newModel | flippedCards = ( blankCard, blankCard ) }, Cmd.none )
+                ( newModel, Cmd.none )
 
         FlipSingleCard card ->
             let
-                -- 1. flip card
                 flipCard e =
                     if e.id == card.id then
-                        { e | faceDown = not e.faceDown }
+                        { e | faceDown = False, comparing = True }
                     else
                         e
 
-                restoreCard card flippedCards =
+                updatedDeck =
+                    List.map flipCard model.deck
+
+                updatedCardsToCompare =
+                    (,) card (fst model.cardsToCompare)
+
+                -- function that returns number of cards where comparing is True
+                numberComparing =
                     let
-                        flipped1 =
-                            fst flippedCards
-
-                        flipped2 =
-                            snd flippedCards
+                        i =
+                            0
                     in
-                        if card.id == flipped1.id then
-                            { card | faceDown = True }
-                        else if card.id == flipped2.id then
-                            { card | faceDown = True }
-                        else
-                            card
+                        List.length <|
+                            List.filter (\val -> val == 1) <|
+                                List.map
+                                    (\card ->
+                                        if card.comparing == True then
+                                            i + 1
+                                        else
+                                            i
+                                    )
+                                    updatedDeck
 
-                -- 2. add to flippedCards list
-                -- updatedFlippedCards =
-                --     if List.length model.flippedCards == 2 then
-                --         model.flippedCards
-                --     else
-                --         card :: model.flippedCards
-                -- move fist card in tuple to second position
-                -- add click-on card to first position
-                updatedFlippedCards =
-                    (,) card (fst model.flippedCards)
-
-                -- check if value of first card is equal to value of second card in tuple
-                areEqual =
-                    if (==) (.value <| (fst updatedFlippedCards)) (.value <| (snd updatedFlippedCards)) then
+                -- if there are exactly 2 cards where comparing is True, return True
+                shouldCompare =
+                    if numberComparing == 2 then
                         True
                     else
                         False
 
-                updatedDeck =
-                    -- if the last two cards flipped match, leave them face up
-                    if areEqual then
-                        List.map flipCard model.deck
+                -- if shouldCompare is True, compare value of both cards in updatedCardsToCompare
+                areEqual =
+                    if shouldCompare then
+                        (==) (.value <| fst updatedCardsToCompare) (.value <| snd updatedCardsToCompare)
                     else
-                        List.map (\card -> restoreCard card updatedFlippedCards) model.deck
+                        False
 
-                newModel =
-                    { model
-                        | deck = updatedDeck
-                        , flippedCards =
-                            if areEqual then
-                                ( blankCard, blankCard )
-                            else
-                                updatedFlippedCards
-                    }
+                shouldRestore =
+                    shouldCompare && not areEqual
 
-                -- areEqual =
-                --     let
-                --         card1 =
-                --             Maybe.withDefault { faceDown = True, id = 0, value = "?" } <| getAt 0 updatedFlippedCards
-                --
-                --         card2 =
-                --             Maybe.withDefault { faceDown = True, id = 0, value = "?" } <| getAt 0 updatedFlippedCards
-                --     in
-                --         -- if list has 2 values, continue
-                --         if List.length updatedFlippedCards == 2 then
-                --             card1.value == card2.value
-                --             -- if list has 1 value, do nothing
-                --         else
-                --             False
-                -- restoredDeck =
-                --     List.map (\card -> if card.id == .id <| (fst updatedFlippedCards) (||) .id <| (snd updatedFlippedCards) then { model | deck = }) model.deck
-                -- result =
-                --     -- if cards are not equal, set faceDown = True for both
-                --     -- if areEqual then
-                --     --     []
-                --     -- else
-                --     -- List.map (\card -> { card | faceDown = True }) updatedFlippedCards
-                --     if .id <| snd updatedFlippedCards == 0 then updatedFlippedCards else
+                db1 =
+                    Debug.log "updatedCardsToCompare" updatedCardsToCompare
+
+                db2 =
+                    Debug.log "numberComparing" numberComparing
+
+                db3 =
+                    Debug.log "shouldCompare" shouldCompare
+
+                db4 =
+                    Debug.log "areEqual" areEqual
+
+                db5 =
+                    Debug.log "shouldRestore" shouldRestore
+
+                {-
+                   If I click to "A" value cards in a row
+
+                   updatedCardsToCompare = ("A", blank-card)
+                   numberComparing = 1
+                   shouldCompare = False
+                   areEqual = False
+
+                   updatedCardsToCompare = ("A", "A")
+                   numberComparing = 2
+                   shouldCompare = True
+                   areEqual = True
+                -}
             in
-                -- ultimately, I want flippedCards to have 1 card in it, or none
+                -- if compared cards are equal, do nothing, else sleep 1 second, then flip all cards
+                -- where comparing is True facedown
+                ( { model
+                    | deck = updatedDeck
+                    , cardsToCompare =
+                        (if not shouldCompare then
+                            updatedCardsToCompare
+                         else
+                            ( blankCard, blankCard )
+                        )
+                  }
+                , if shouldRestore then
+                    restoreCards
+                  else
+                    Cmd.none
+                )
+
+        FlipAllCards ->
+            let
+                newModel =
+                    model |> flipAllCardsFaceDown
+            in
                 ( newModel, Cmd.none )
 
 
-
-{- when user clicks on a card:
-   1. flip card
-   2. add to flippedCards list
-   3. check length of list
-       • if list has 1 value, do nothing
-       • if list has 2 values, continue
-   4. compare value of both cards in list
-       • if cards are equal, do nothing
-       • if cards are not equal, set faceDown = True for both
-   5. clear flippedCards
--}
--- testSleep : Cmd Msg
--- testSleep =
---     sleep 3000 |> Task.perform (\_ -> NoOp) (\_ -> UpdateMessage)
+restoreCards : Cmd Msg
+restoreCards =
+    sleep 1000 |> Task.perform never (\_ -> FlipAllCards)
 
 
 newGame : Cmd Msg
 newGame =
     sleep 0 |> Task.perform never (\_ -> NewGame)
-
-
-compareCards : Card -> Card -> Bool
-compareCards card1 card2 =
-    card1.value == card2.value
 
 
 flipAllCardsFaceDown : Model -> Model
