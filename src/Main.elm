@@ -18,6 +18,7 @@ type alias Flags =
 type alias Model =
     { deck : List Card
     , cardsToCompare : ( Card, Card )
+    , canClickCards : Bool
     , seed : Random.Seed
     }
 
@@ -76,6 +77,7 @@ init { randSeed } =
             , { id = 36, value = "R", faceDown = True, comparing = False }
             ]
       , cardsToCompare = ( blankCard, blankCard )
+      , canClickCards = True
       , seed = Random.initialSeed randSeed
       }
     , newGame
@@ -92,36 +94,36 @@ type Msg
 
 view : Model -> Html Msg
 view model =
-    div [ class "board" ]
-        [ div [] <|
-            List.map
-                viewCard
-            <|
-                model.deck
-        , button [ onClick NewGame ] [ text "New Game" ]
-        , ul [] <| List.map listCard model.deck
-        ]
+    let
+        viewCard card =
+            div
+                [ onClick <|
+                    (if card.faceDown && model.canClickCards then
+                        FlipSingleCard
+                     else
+                        always NoOp
+                    )
+                    <|
+                        card
+                , classList [ ( "card", True ), ( "face-down", card.faceDown ) ]
+                ]
+                [ Html.span [ class "card-value" ] [ text <| card.value ]
+                ]
+    in
+        div [ class "board" ]
+            [ div [] <|
+                List.map
+                    viewCard
+                <|
+                    model.deck
+            , button [ onClick NewGame ] [ text "New Game" ]
+            , p [] [ text <| toString model.canClickCards ]
+            , ul [] <| List.map listCard model.deck
+            ]
 
 
 listCard card =
     li [] [ text <| toString card ]
-
-
-viewCard : Card -> Html Msg
-viewCard card =
-    div
-        [ onClick <|
-            (if card.faceDown then
-                FlipSingleCard
-             else
-                always NoOp
-            )
-            <|
-                card
-        , classList [ ( "card", True ), ( "face-down", card.faceDown ) ]
-        ]
-        [ Html.span [ class "card-value" ] [ text <| card.value ]
-        ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -174,6 +176,12 @@ update msg model =
                         (==) (.value <| fst updatedCardsToCompare) (.value <| snd updatedCardsToCompare)
                     else
                         False
+
+                updatedCanClickCards =
+                    if numberComparing == 2 then
+                        False
+                    else
+                        True
             in
                 ( { model
                     | deck = updatedDeck
@@ -183,6 +191,7 @@ update msg model =
                          else
                             ( blankCard, blankCard )
                         )
+                    , canClickCards = updatedCanClickCards
                   }
                 , if numberComparing == 2 then
                     if areEqual == True then
@@ -194,7 +203,7 @@ update msg model =
                 )
 
         RestoreComparing ->
-            ( { model | deck = List.map (\card -> { card | comparing = False }) model.deck }, Cmd.none )
+            ( { model | deck = List.map (\card -> { card | comparing = False }) model.deck, canClickCards = True }, Cmd.none )
 
         RestoreComparingAndFlipped ->
             let
@@ -208,12 +217,7 @@ update msg model =
                         )
                         model.deck
             in
-                ( { model | deck = List.map (\card -> { card | comparing = False }) updatedDeck }, Cmd.none )
-
-
-
--- TODO: adjust so all logic WRT restoration happens instantly, and only the -visual- flipping is delayed by a second
--- might require re-working what determines the visual appearance of a card
+                ( { model | deck = List.map (\card -> { card | comparing = False }) updatedDeck, canClickCards = True }, Cmd.none )
 
 
 restoreComparing : Cmd Msg
