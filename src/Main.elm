@@ -19,6 +19,7 @@ type alias Model =
     { deck : List Card
     , cardsToCompare : ( Card, Card )
     , canClickCards : Bool
+    , score : Int
     , seed : Random.Seed
     }
 
@@ -78,6 +79,7 @@ init { randSeed } =
             ]
       , cardsToCompare = ( blankCard, blankCard )
       , canClickCards = True
+      , score = 0
       , seed = Random.initialSeed randSeed
       }
     , newGame
@@ -111,19 +113,14 @@ view model =
                 ]
     in
         div [ class "board" ]
-            [ div [] <|
+            [ h2 [] [ text <| toString model.score ]
+            , div [] <|
                 List.map
                     viewCard
                 <|
                     model.deck
             , button [ onClick NewGame ] [ text "New Game" ]
-            , p [] [ text <| toString model.canClickCards ]
-            , ul [] <| List.map listCard model.deck
             ]
-
-
-listCard card =
-    li [] [ text <| toString card ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -136,6 +133,7 @@ update msg model =
             let
                 newModel =
                     model
+                        |> resetScore
                         |> flipAllCardsFaceDown
                         |> shuffle
             in
@@ -182,6 +180,12 @@ update msg model =
                         False
                     else
                         True
+
+                updatedScore =
+                    if numberComparing == 2 then
+                        model.score + 1
+                    else
+                        model.score
             in
                 ( { model
                     | deck = updatedDeck
@@ -192,6 +196,7 @@ update msg model =
                             ( blankCard, blankCard )
                         )
                     , canClickCards = updatedCanClickCards
+                    , score = updatedScore
                   }
                 , if numberComparing == 2 then
                     if areEqual == True then
@@ -233,6 +238,11 @@ restoreComparingAndFlipped =
 newGame : Cmd Msg
 newGame =
     sleep 0 |> Task.perform never (\_ -> NewGame)
+
+
+resetScore : Model -> Model
+resetScore model =
+    { model | score = 0 }
 
 
 flipAllCardsFaceDown : Model -> Model
