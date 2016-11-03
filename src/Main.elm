@@ -20,6 +20,7 @@ type alias Model =
     , cardsToCompare : ( Card, Card )
     , canClickCards : Bool
     , score : Int
+    , gameEnd : Bool
     , seed : Random.Seed
     }
 
@@ -80,6 +81,7 @@ init { randSeed } =
       , cardsToCompare = ( blankCard, blankCard )
       , canClickCards = True
       , score = 0
+      , gameEnd = False
       , seed = Random.initialSeed randSeed
       }
     , newGame
@@ -111,16 +113,24 @@ view model =
                 ]
                 [ Html.span [ class "card-value" ] [ text <| card.value ]
                 ]
+
+        gameEndView =
+            div [ class "game-end" ]
+                [ h1 [] [ text "Game Over" ]
+                ]
     in
-        div [ class "board" ]
-            [ h2 [] [ text <| toString model.score ]
-            , div [] <|
-                List.map
-                    viewCard
-                <|
-                    model.deck
-            , button [ onClick NewGame ] [ text "New Game" ]
-            ]
+        if model.gameEnd then
+            gameEndView
+        else
+            div [ class "board" ]
+                [ h2 [] [ text <| toString model.score ]
+                , div [] <|
+                    List.map
+                        viewCard
+                    <|
+                        model.deck
+                , button [ onClick NewGame ] [ text "New Game" ]
+                ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -180,12 +190,6 @@ update msg model =
                         False
                     else
                         True
-
-                updatedScore =
-                    if numberComparing == 2 then
-                        model.score + 1
-                    else
-                        model.score
             in
                 ( { model
                     | deck = updatedDeck
@@ -195,8 +199,8 @@ update msg model =
                          else
                             ( blankCard, blankCard )
                         )
-                    , canClickCards = updatedCanClickCards
-                    , score = updatedScore
+                    , canClickCards =
+                        updatedCanClickCards
                   }
                 , if numberComparing == 2 then
                     if areEqual == True then
@@ -208,7 +212,11 @@ update msg model =
                 )
 
         RestoreComparing ->
-            ( { model | deck = List.map (\card -> { card | comparing = False }) model.deck, canClickCards = True }, Cmd.none )
+            let
+                gameIsOver =
+                    List.all (\card -> card.faceDown == False) model.deck
+            in
+                ( { model | deck = List.map (\card -> { card | comparing = False }) model.deck, canClickCards = True, gameEnd = gameIsOver }, Cmd.none )
 
         RestoreComparingAndFlipped ->
             let
@@ -222,7 +230,7 @@ update msg model =
                         )
                         model.deck
             in
-                ( { model | deck = List.map (\card -> { card | comparing = False }) updatedDeck, canClickCards = True }, Cmd.none )
+                ( { model | deck = List.map (\card -> { card | comparing = False }) updatedDeck, canClickCards = True, score = model.score + 1 }, Cmd.none )
 
 
 restoreComparing : Cmd Msg
