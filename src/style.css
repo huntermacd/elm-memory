@@ -1,6 +1,49 @@
+@import url('https://fonts.googleapis.com/css?family=Bungee+Shade|Inconsolata');
+
+header {
+  display: flex;
+  font-size: 3em;
+  text-align: center;
+  width: 672px;
+  margin: 0 auto;
+}
+
+.header-item {
+  flex-grow: 1;
+}
+
+.logo-first-half,
+.logo-second-half {
+  font-family: 'Bungee Shade', cursive;
+}
+
+.logo-first-half {
+  color: navy;
+}
+
+.logo-second-half {
+  color: maroon;
+}
+
+.new-game {
+  display: flex;
+  align-items: center;
+}
+
+.new-game button {
+  border: 1px solid black;
+  background-color: white;
+  margin: 0 auto;
+}
+
 .board {
   width: 672px;
   margin: 0 auto;
+}
+
+.card,
+.score {
+  font-family: 'Inconsolata', monospace;
 }
 
 .card {
@@ -11,7 +54,7 @@
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  background-color: steelblue;
+  background-color: navy;
 }
 
 .card-value {
@@ -22,7 +65,7 @@
 }
 
 .face-down {
-  background-color: tomato;
+  background-color: maroon;
 }
 
 .face-down span {

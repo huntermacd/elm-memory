@@ -81,7 +81,7 @@ init { randSeed } =
       , cardsToCompare = ( blankCard, blankCard )
       , canClickCards = True
       , score = 0
-      , gameEnd = True
+      , gameEnd = False
       , seed = Random.initialSeed randSeed
       }
     , newGame
@@ -118,31 +118,38 @@ view model =
             div [ class "game-end" ]
                 [ h1 [] [ text "Game Over" ]
                 , p [] [ text <| "Great job! You made " ++ (toString model.score) ++ " mismatches. Try for fewer next time!" ]
-                , newGameButton
                 ]
     in
-        if model.gameEnd then
-            gameEndView
-        else
-            div [ class "board" ]
-                [ scoreDisplay model
-                , div [] <|
-                    List.map
-                        viewCard
-                    <|
-                        model.deck
+        div []
+            [ header []
+                [ div [ class "header-item" ]
+                    [ span [ class "logo-first-half" ] [ text "elm" ]
+                    , span [ class "logo-second-half" ] [ text "emory" ]
+                    ]
                 , newGameButton
+                , scoreDisplay model
                 ]
+            , if model.gameEnd then
+                gameEndView
+              else
+                div [ class "board" ]
+                    [ div [] <|
+                        List.map
+                            viewCard
+                        <|
+                            model.deck
+                    ]
+            ]
 
 
 scoreDisplay : Model -> Html Msg
 scoreDisplay model =
-    h2 [] [ text <| toString model.score ]
+    div [ class "header-item" ] [ span [ class "score" ] [ text <| toString model.score ] ]
 
 
 newGameButton : Html Msg
 newGameButton =
-    button [ onClick NewGame ] [ text "New Game" ]
+    div [ classList [ ( "header-item", True ), ( "new-game", True ) ] ] [ button [ onClick NewGame ] [ text "New Game" ] ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
