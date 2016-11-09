@@ -81,7 +81,7 @@ init { randSeed } =
       , cardsToCompare = ( blankCard, blankCard )
       , canClickCards = True
       , score = 0
-      , gameEnd = False
+      , gameEnd = True
       , seed = Random.initialSeed randSeed
       }
     , newGame
@@ -117,20 +117,32 @@ view model =
         gameEndView =
             div [ class "game-end" ]
                 [ h1 [] [ text "Game Over" ]
+                , p [] [ text <| "Great job! You made " ++ (toString model.score) ++ " mismatches. Try for fewer next time!" ]
+                , newGameButton
                 ]
     in
         if model.gameEnd then
             gameEndView
         else
             div [ class "board" ]
-                [ h2 [] [ text <| toString model.score ]
+                [ scoreDisplay model
                 , div [] <|
                     List.map
                         viewCard
                     <|
                         model.deck
-                , button [ onClick NewGame ] [ text "New Game" ]
+                , newGameButton
                 ]
+
+
+scoreDisplay : Model -> Html Msg
+scoreDisplay model =
+    h2 [] [ text <| toString model.score ]
+
+
+newGameButton : Html Msg
+newGameButton =
+    button [ onClick NewGame ] [ text "New Game" ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -143,6 +155,7 @@ update msg model =
             let
                 newModel =
                     model
+                        |> resetGameEnd
                         |> resetScore
                         |> flipAllCardsFaceDown
                         |> shuffle
@@ -246,6 +259,11 @@ restoreComparingAndFlipped =
 newGame : Cmd Msg
 newGame =
     sleep 0 |> Task.perform never (\_ -> NewGame)
+
+
+resetGameEnd : Model -> Model
+resetGameEnd model =
+    { model | gameEnd = False }
 
 
 resetScore : Model -> Model

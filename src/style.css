@@ -28,3 +28,7 @@
 .face-down span {
   display: none;
 }
+
+.game-end {
+  text-align: center;
+}
