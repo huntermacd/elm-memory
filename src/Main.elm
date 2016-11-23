@@ -1,14 +1,13 @@
 module Main exposing (..)
 
-import Basics.Extra exposing (never)
 import Debug
 import Html exposing (..)
-import Html.App
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Process exposing (sleep)
 import Random
 import Task
+import Tuple exposing (first, second)
 
 
 type alias Flags =
@@ -181,7 +180,7 @@ update msg model =
                     List.map flipCard model.deck
 
                 updatedCardsToCompare =
-                    (,) card (fst model.cardsToCompare)
+                    (,) card (first model.cardsToCompare)
 
                 numberComparing =
                     let
@@ -201,7 +200,7 @@ update msg model =
 
                 areEqual =
                     if numberComparing == 2 then
-                        (==) (.value <| fst updatedCardsToCompare) (.value <| snd updatedCardsToCompare)
+                        (==) (.value <| first updatedCardsToCompare) (.value <| second updatedCardsToCompare)
                     else
                         False
 
@@ -255,17 +254,17 @@ update msg model =
 
 restoreComparing : Cmd Msg
 restoreComparing =
-    sleep 1000 |> Task.perform never (\_ -> RestoreComparing)
+    sleep 1000 |> Task.perform (\_ -> RestoreComparing)
 
 
 restoreComparingAndFlipped : Cmd Msg
 restoreComparingAndFlipped =
-    sleep 1000 |> Task.perform never (\_ -> RestoreComparingAndFlipped)
+    sleep 1000 |> Task.perform (\_ -> RestoreComparingAndFlipped)
 
 
 newGame : Cmd Msg
 newGame =
-    sleep 0 |> Task.perform never (\_ -> NewGame)
+    sleep 0 |> Task.perform (\_ -> NewGame)
 
 
 resetGameEnd : Model -> Model
@@ -287,9 +286,9 @@ shuffle : Model -> Model
 shuffle model =
     let
         randomNums =
-            Random.step (Random.list (List.length model.deck) (Random.int 1 100)) model.seed |> fst
+            Random.step (Random.list (List.length model.deck) (Random.int 1 100)) model.seed |> first
     in
-        { model | deck = List.map2 (,) randomNums model.deck |> List.sortBy fst |> List.unzip |> snd }
+        { model | deck = List.map2 (,) randomNums model.deck |> List.sortBy first |> List.unzip |> second }
 
 
 subscriptions : Model -> Sub Msg
@@ -297,9 +296,9 @@ subscriptions model =
     Sub.none
 
 
-main : Program Flags
+main : Program Flags Model Msg
 main =
-    Html.App.programWithFlags
+    Html.programWithFlags
         { init = init
         , view = view
         , update = update

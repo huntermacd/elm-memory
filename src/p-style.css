@@ -1,6 +1,9 @@
 @import url('https://fonts.googleapis.com/css?family=Bungee+Shade|Inconsolata');
 
 header {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
   display: flex;
   font-size: 3em;
   text-align: center;
@@ -9,7 +12,10 @@ header {
 }
 
 .header-item {
-  flex-grow: 1;
+  -webkit-box-flex: 1;
+  -webkit-flex-grow: 1;
+      -ms-flex-positive: 1;
+          flex-grow: 1;
 }
 
 .logo-first-half,
@@ -26,8 +32,14 @@ header {
 }
 
 .new-game {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
   display: flex;
-  align-items: center;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+      -ms-flex-align: center;
+          align-items: center;
 }
 
 .new-game button {
@@ -51,6 +63,9 @@ header {
   width: 100px;
   border: 1px solid black;
   margin: 5px;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
   display: inline-flex;
   background-color: navy;
   position: relative;
@@ -63,7 +78,14 @@ header {
   position: absolute;
   top: 25px;
   left: 38px;
-  user-select: none;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+}
+
+.card-value::-moz-selection {
+  background: transparent;
 }
 
 .card-value::selection {
